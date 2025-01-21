@@ -4,13 +4,139 @@ const nodemailer = require('nodemailer');
 const path = require('path'); // Add this to handle file paths
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const multer = require('multer');
+const fs = require('fs').promises;
+
 
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json());  // Add this line to your backend if not already present
- 
+app.use(express.json());
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleAIFileManager } = require("@google/generative-ai/server");
+
+
+const genAI = new GoogleGenerativeAI("AIzaSyAHCiTfYFo8BYRsuOIQwVQNA6uEHHfNjJc");
+const fileManager = new GoogleAIFileManager("AIzaSyAHCiTfYFo8BYRsuOIQwVQNA6uEHHfNjJc");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+
+
+
+const createJobEmail = async (posterFile) => {
+  const selfPrompt = `I am a Passionate software developer with a strong foundation in Java. I’ve crafted various successful projects, showcasing my proficiency in
+React, MongoDB, Node.js, and Express js. My expertise extends to developing robust applications using MERN stack and crafting dynamic user
+interfaces. My ability to work across the full‑stack spectrum, coupled with a keen interest in learning new technologies, makes me a valuable asset
+to your team. Use these details for your responses:
+
+Personal:
+- Phone: +917907144673
+- Email: kumarjayaram545@gmail.com
+- LinkedIn: jayaram-s-kumar-48607920b
+
+Education:
+- B.Tech in Computer Science from College of Engineering and Management Punnapra (2020-2024), CGPA: 7.0
+- Higher Secondary from GBHSS Kayamkulam (2018-2020), 90%
+
+Experience:
+- Java Full Stack Development at Qspiders Kochi (August 2024-Present)
+  - Focus on OOP concepts and Collections framework
+- React Developer Intern at Igoraza Pvt Ltd (March 2023-August 2023)
+  - Built UI interfaces and a real estate/automobile platform
+  - Experienced with Git and team collaboration
+- User Engagement Intern at Speakapp Pvt. Ltd. (January 2022-March 2022)
+  - Drove user growth through content creation
+
+Projects:
+1. Wheels & Walls: Real estate/automobile platform with user profiles, OTP verification, and file uploads
+2. Just4Marry: Matrimonial website with profile management and friend request system
+3. Lung Cancer Detection System: Web app using CNN for cancer classification
+4. E-commerce Platform: Full-featured with user profiles and admin panel
+
+Technical Skills:
+- Programming: Java, JavaScript (ReactJS), HTML/CSS
+- Frameworks: ExpressJS, Bootstrap, Material UI, Tailwind CSS
+- Databases: MongoDB, SQL, PostgreSQL
+- Tools: Eclipse, VScode, Git(GitHub), Postman
+
+Leadership:
+- Campus Outreach Lead at Tinkerhub (Jan 2021-Jan 2023)
+- Organized tech events and led student engagement initiatives
+
+Key Strengths:
+- Full-stack development expertise
+- Strong foundation in Java
+- Experience with MERN stack
+- Team collaboration
+- Leadership and communication skills`
+
+
+  try {
+    // Create a temporary file path
+    console.log("posterfile is,", posterFile)
+    const tempPath = path.join(__dirname, `temp-${Date.now()}-${posterFile.originalname}`);
+
+    // Write the buffer to a temporary file
+    await fs.writeFile(tempPath, posterFile.buffer);
+
+    // Now use the file path
+    const uploadResult = await fileManager.uploadFile(
+      tempPath,
+      {
+        mimeType: posterFile.mimetype,
+        displayName: posterFile.originalname,
+      },
+    );
+
+    // Delete the temporary file after upload
+    await fs.unlink(tempPath);
+
+    console.log(
+      `Uploaded file ${uploadResult.file.displayName} as: ${uploadResult.file.uri}`
+    );
+
+    const result = await model.generateContent([
+      `You must respond with a valid JSON string and nothing else. Do not include any explanations, backticks, or markdown formatting. 
+       Generate an original, professional job application email based on the provided information.
+       The response must be parseable by JSON.parse() and follow this exact structure:
+       {"hrEmail":"email@example.com","subject":"Job Application Subject","emailBody":"Email content here"}
+       Ensure all special characters and line breaks in emailBody are properly escaped.
+       The email body should be a html data.So use p tags wisely
+       ${selfPrompt}`,
+      {
+        fileData: {
+          fileUri: uploadResult.file.uri,
+          mimeType: uploadResult.file.mimeType,
+        },
+
+      },
+    ]);
+
+    let cleanedRes = result.response.text().replace(/`/g, "").replace(/json/g, "");
+    console.log("cleanedRes : ", cleanedRes)
+    let cleanedJsonRes = JSON.parse(cleanedRes)
+    console.log("cleanedJsonRes is:", cleanedJsonRes)
+
+    return cleanedJsonRes
+
+  } catch (error) {
+    console.log("error in createJobEmail function");
+    console.error(error);
+    throw error; // Re-throw the error for proper error handling upstream
+  }
+}
+
+
+
 // Route for the root path '/'
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+
   res.send('Hello from Express server!');
 });
 
@@ -19,16 +145,23 @@ app.listen(3000, () => {
   console.log('Server is running on http://localhost:3000');
 });
 
+app.post('/poster', upload.single('posterImage'), async (req, res) => {
+  const myEmailObj = await createJobEmail(req.file);
+  res.json({
+    success: true,
+    myEmailObj
+  });
+})
 
-
-app.post('/sendemail', (req, res) => {
-  res.send("hello");
-  console.log("sendinforeq called");
-  console.log(req.body)
-  const user = "lensikoviski@gmail.com";
-  const password = "qnhd oopy fdsy elez";//lensikoviski
-  //const password1 = "bpzy kcah zxgx yobr" //neeraj
+app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
+  console.log("Send email request received:", req.body);
   
+
+
+  // Email configuration
+  const user = "lensikoviski@gmail.com";
+  const password = "qnhd oopy fdsy elez";
+
   const transport = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -37,49 +170,73 @@ app.post('/sendemail', (req, res) => {
     }
   });
 
-  // Assuming the PDF is in the same directory as your server file
-  const pdfPath = path.join(__dirname, 'dummy.pdf');
+  const myEmailObj = req.body;
+  console.log("myEmailObj is", myEmailObj)
+  // Verify SMTP connection
+  try {
+    await transport.verify();
+  } catch (error) {
+    console.error("SMTP Connection Error:", error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to connect to email server',
+      error: error.message
+    });
+  }
+
+  // Prepare email content
+  const emailContent = {
+    from: user,
+    // to: jsonObj.hrEmail,
+    to: "kumarjayaram545@gmail.com",
+    subject: myEmailObj.subject,
+    html: myEmailObj.emailBody,
+    attachments: [{
+      filename: `Java_Developer.pdf`,
+      path: path.join(__dirname, `/resumes/Java_Developer.pdf`)
+    }]
+  };
+
+  console.log("emailContent is ", emailContent)
 
   try {
-   
-    transport.sendMail({
-      from: user,
-      to: req.body.hrEmail,
-      subject: `Application for ${req.body.position} Position at ${req.body.companyName}`,
-      html: `
-        <p>Dear Hiring Team at ${req.body.companyName},</p>
+    // Check if resume file exists
+    //await fs.access(path.join(__dirname, `/resumes/${req.body.position}.pdf`));
 
-        <p>I am writing to express my strong interest in the ${req.body.position} position at ${req.body.companyName}. With a strong foundation in Java and extensive experience in MERN stack development, I am excited about the opportunity to contribute to your team.</p>
+    // Send email
+    await transport.sendMail(emailContent);
 
-        <p>During my internship at Igoraza Pvt Ltd, I played a key role in developing a comprehensive platform for automobile and real estate sales, demonstrating my proficiency in React and modern frontend development. My experience includes implementing features like user authentication, email verification, and database management using Node.js, Express, and MongoDB.</p>
+    console.log("Email sent successfully");
+    return res.status(200).json({
+      status: 'success',
+      message: 'Email sent successfully'
+    }); 
 
-        <p>Currently pursuing Java Full Stack Development at Qspiders, I've strengthened my expertise in Object-Oriented Programming and various frameworks. My technical skills include:</p>
-        <ul>
-          <li>Programming: Java, JavaScript (ReactJS), HTML/CSS</li>
-          <li>Frameworks: ExpressJS, Bootstrap, Material UI, Tailwind CSS</li>
-          <li>Databases: MongoDB, SQL, PostgreSQL</li>
-          <li>Tools: Eclipse, VScode, Git(GitHub), Postman</li>
-        </ul>
-
-        <p>I am particularly drawn to this opportunity at ${req.body.companyName} and am confident that my technical skills and enthusiasm for learning would make me a valuable addition to your team.</p>
-
-        <p>I look forward to discussing how I can contribute to your organization in more detail.</p>
-
-        <p>Thank you for considering my application.</p>
-
-        <p>Best regards,<br>
-        Jayaram S Kumar<br>
-        +917907144673<br>
-        kumarjayaram545@gmail.com<br>
-        LinkedIn: jayaram-s-kumar-48607920b</p>
-      `,
-      attachments:[{
-        filename: `${req.body.position}.pdf`,
-        path: path.join(__dirname, `/resumes/${req.body.position}.pdf`)
-      }]
-    });
-    console.log("message sent with attachment");
   } catch (error) {
-    console.log("error is:", error);
+    console.error("Error:", error);
+
+    // Handle specific error types
+    if (error.code === 'ENOENT') {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Resume file not found',
+        error: `No resume found for position: ${req.body.position}`
+      });
+    }
+
+    if (error.code === 'EAUTH') {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Email authentication failed',
+        error: error.message
+      });
+    }
+
+    // Generic error handler
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to send email',
+      error: error.message
+    });
   }
 });
