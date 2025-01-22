@@ -22,8 +22,8 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { GoogleAIFileManager } = require("@google/generative-ai/server");
 
 
-const genAI = new GoogleGenerativeAI("AIzaSyAHCiTfYFo8BYRsuOIQwVQNA6uEHHfNjJc");
-const fileManager = new GoogleAIFileManager("AIzaSyAHCiTfYFo8BYRsuOIQwVQNA6uEHHfNjJc");
+const genAI = new GoogleGenerativeAI("AIzaSyBXYg7zBKkGBDZhfMbPi92YgTbTyrC78zk");
+const fileManager = new GoogleAIFileManager("AIzaSyBXYg7zBKkGBDZhfMbPi92YgTbTyrC78zk");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
