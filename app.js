@@ -131,8 +131,8 @@ app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
 
 
   // Email configuration
-  const user = "lensikoviski@gmail.com";
-  const password = "qnhd oopy fdsy elez";
+  const user = "nerajnerajlal@gmail.com";
+  const password = "bpzy kcah zxgx yobr";
   // const user = "kumarjayaram545@gmail.com"
   // const password = "nmop tcvs kalx tvjc"
 
