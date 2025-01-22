@@ -30,51 +30,25 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
 const createJobEmail = async (posterFile) => {
-  const selfPrompt = `I am a Passionate software developer with a strong foundation in Java. I’ve crafted various successful projects, showcasing my proficiency in
-React, MongoDB, Node.js, and Express js. My expertise extends to developing robust applications using MERN stack and crafting dynamic user
-interfaces. My ability to work across the full‑stack spectrum, coupled with a keen interest in learning new technologies, makes me a valuable asset
-to your team. Use these details for your responses:
-
-Personal:
-- Phone: +917907144673
-- Email: kumarjayaram545@gmail.com
-- LinkedIn: jayaram-s-kumar-48607920b
-
-Education:
-- B.Tech in Computer Science from College of Engineering and Management Punnapra (2020-2024), CGPA: 7.0
-- Higher Secondary from GBHSS Kayamkulam (2018-2020), 90%
-
-Experience:
-- Java Full Stack Development at Qspiders Kochi (August 2024-Present)
-  - Focus on OOP concepts and Collections framework
-- React Developer Intern at Igoraza Pvt Ltd (March 2023-August 2023)
-  - Built UI interfaces and a real estate/automobile platform
-  - Experienced with Git and team collaboration
-- User Engagement Intern at Speakapp Pvt. Ltd. (January 2022-March 2022)
-  - Drove user growth through content creation
-
-Projects:
-1. Wheels & Walls: Real estate/automobile platform with user profiles, OTP verification, and file uploads
-2. Just4Marry: Matrimonial website with profile management and friend request system
-3. Lung Cancer Detection System: Web app using CNN for cancer classification
-4. E-commerce Platform: Full-featured with user profiles and admin panel
-
-Technical Skills:
-- Programming: Java, JavaScript (ReactJS), HTML/CSS
-- Frameworks: ExpressJS, Bootstrap, Material UI, Tailwind CSS
-- Databases: MongoDB, SQL, PostgreSQL
-- Tools: Eclipse, VScode, Git(GitHub), Postman
-
-Leadership:
-- Campus Outreach Lead at Tinkerhub (Jan 2021-Jan 2023)
-- Organized tech events and led student engagement initiatives
-
-Key Strengths:
-- Full-stack development expertise
-- Strong foundation in Java
-- Experience with MERN stack
-- Team collaboration
-- Leadership and communication skills`
+  const selfPrompt = `I am Neraj Lal S, a technology professional with expertise across multiple roles including Java 
+  Development, Software Engineering, and Web Development. I hold an MCA from Sree Narayana Institute of Technology
+   (2022-2024) and a BSc in Computer Science from IHRD College of Applied Science (2019-2022), both under the University
+    of Kerala. My technical skills span multiple programming languages including PHP, Java, JavaScript, HTML, CSS,
+     Bootstrap, Python, and Machine Learning. I'm proficient in database management systems like MySQL, MongoDB, 
+     and MySQLi, and have experience with frameworks such as Django (Python) and React. My professional experience
+      includes working as a Web Developer (PHP) at Serve Techno Research Kollam (2022-2024) where I developed and
+       maintained web applications using PHP and ML, and I completed a Java Internship (2024-2025). I have completed
+        several notable projects including "Serve The Needy" (a MERN stack project for food donation), "Farming Assistant" 
+        (a PHP-based agricultural e-commerce platform), and "Social Welfare" (a Django-based charity management system).
+         I have also undertaken self-learning projects including an E-commerce system with Product Recommendation, 
+         Sentiment Analysis in Product Reviews, a Matrimony Site, Resume Builder, E-learning Platform, and Inventory
+          Management System. My achievements include being a Devtown campus ambassador, Google developer students club member,
+           Microsoft learn student ambassador, and winning first prize in a 24-hour hackathon conducted by IEDC. I hold certificates
+            in Responsive Web Designing from Freecodecamp, HTML5 and CSS3 from Pirple, and Machine Learning with 
+            Python from Freecodecamp. I maintain an active presence on GitHub (github.com/nerajlal), have a professional 
+            profile at gecnoguru.com/Nerajlal, and can be reached at nerajnerajlal@gmail.com or +91 8547470675. My current
+             interests include exploring new web development frameworks and technologies, MERN stack development, Android
+              development, machine learning applications, and modern JavaScript frameworks.`
 
 
   try {
@@ -103,12 +77,9 @@ Key Strengths:
 
     const result = await model.generateContent([
       `This is a job poster.You must respond with a valid JSON string and nothing else. Do not include any explanations, backticks, or markdown formatting. 
-       Generate an original, professional job application email based on the provided information.
        The response must be parseable by JSON.parse() and follow this exact structure:
-       {"hrEmail":"email@example.com","subject":"Job Application Subject","emailBody":"Email content here"}
-       Ensure all special characters and line breaks in emailBody are properly escaped.
-       The email body should be a html data.So use html tags wisely to make the mail look neater and prodessional.
-       Don't make the email too long.Make it simple and short.
+       {"hrEmail":"email@example.com","subject":"Job Application Subject","jobPosition":"Job position here",
+       "company":"The name of the company here"}
        ${selfPrompt}`,
       {
         fileData: {
@@ -160,10 +131,10 @@ app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
 
 
   // Email configuration
-  // const user = "lensikoviski@gmail.com";
-  // const password = "qnhd oopy fdsy elez";
-  const user = "kumarjayaram545@gmail.com"
-  const password = "nmop tcvs kalx tvjc"
+  const user = "lensikoviski@gmail.com";
+  const password = "qnhd oopy fdsy elez";
+  // const user = "kumarjayaram545@gmail.com"
+  // const password = "nmop tcvs kalx tvjc"
 
   const transport = nodemailer.createTransport({
     service: "Gmail",
@@ -190,13 +161,28 @@ app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
   // Prepare email content
   const emailContent = {
     from: user,
-    to: myEmailObj.hrEmail,
-    // to: "kumarjayaram545@gmail.com",
+    // to: myEmailObj.hrEmail,
+    to: "kumarjayaram545@gmail.com",
     subject: myEmailObj.subject,
-    html: myEmailObj.emailBody,
+    html: `<p>Dear Hiring Team at ${myEmailObj.company},</p>
+
+<p>I am excited to apply for the ${myEmailObj.jobPosition} position at your esteemed organization. With a solid foundation and combined with a keen understanding of front-end and back-end development, I am eager to contribute to ${myEmailObj.company}'s innovative projects.</p>
+
+<p>My hands-on experience includes creating dynamic web applications and working collaboratively in team environments. I am confident that my technical skills and enthusiasm for learning will enable me to excel in this role.</p>
+
+<p>I look forward to the opportunity to discuss how my skills and aspirations align with your team's goals.</p>
+
+<p>I have attached my resume for your review and would welcome the opportunity to discuss how my skills and experiences align with your team's goals.</p>
+
+<p>Thank you for considering my application, and I look forward to the possibility of contributing to ${myEmailObj.company}'s success.</p>
+
+<p>Best regards,<br>
+Neraj Lal S<br>
+Phone: +91 8547470675<br>
+Email: nerajnerajlal@gmail.com</p>`,
     attachments: [{
-      filename: `JAYARAM_S_KUMAR.pdf`,
-      path: path.join(__dirname, `/resumes/JAYARAM_S_KUMAR_RESUME.pdf`)
+      filename: `${myEmailObj.resume}.pdf`,
+      path: path.join(__dirname, `resumes/${myEmailObj.resume}.pdf`)
     }]
   };
 
