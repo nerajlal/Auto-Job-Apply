@@ -102,12 +102,12 @@ Key Strengths:
     );
 
     const result = await model.generateContent([
-      `You must respond with a valid JSON string and nothing else. Do not include any explanations, backticks, or markdown formatting. 
+      `This is a job poster.You must respond with a valid JSON string and nothing else. Do not include any explanations, backticks, or markdown formatting. 
        Generate an original, professional job application email based on the provided information.
        The response must be parseable by JSON.parse() and follow this exact structure:
        {"hrEmail":"email@example.com","subject":"Job Application Subject","emailBody":"Email content here"}
        Ensure all special characters and line breaks in emailBody are properly escaped.
-       The email body should be a html data.So use p tags wisely.
+       The email body should be a html data.So use html tags wisely to make the mail look neater and prodessional.
        Don't make the email too long.Make it simple and short.
        ${selfPrompt}`,
       {
