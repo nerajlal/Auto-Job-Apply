@@ -107,7 +107,8 @@ Key Strengths:
        The response must be parseable by JSON.parse() and follow this exact structure:
        {"hrEmail":"email@example.com","subject":"Job Application Subject","emailBody":"Email content here"}
        Ensure all special characters and line breaks in emailBody are properly escaped.
-       The email body should be a html data.So use p tags wisely
+       The email body should be a html data.So use p tags wisely.
+       Don't make the email too long.Make it simple and short.
        ${selfPrompt}`,
       {
         fileData: {
@@ -141,8 +142,9 @@ app.get('/', async (req, res) => {
 });
 
 // Start the server
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('Server is running on PORT: ', PORT);
 });
 
 app.post('/poster', upload.single('posterImage'), async (req, res) => {
@@ -155,12 +157,13 @@ app.post('/poster', upload.single('posterImage'), async (req, res) => {
 
 app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
   console.log("Send email request received:", req.body);
-  
 
 
   // Email configuration
-  const user = "lensikoviski@gmail.com";
-  const password = "qnhd oopy fdsy elez";
+  // const user = "lensikoviski@gmail.com";
+  // const password = "qnhd oopy fdsy elez";
+  const user = "kumarjayaram545@gmail.com"
+  const password = "nmop tcvs kalx tvjc"
 
   const transport = nodemailer.createTransport({
     service: "Gmail",
@@ -187,13 +190,13 @@ app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
   // Prepare email content
   const emailContent = {
     from: user,
-    // to: jsonObj.hrEmail,
-    to: "kumarjayaram545@gmail.com",
+    to: myEmailObj.hrEmail,
+    // to: "kumarjayaram545@gmail.com",
     subject: myEmailObj.subject,
     html: myEmailObj.emailBody,
     attachments: [{
-      filename: `Java_Developer.pdf`,
-      path: path.join(__dirname, `/resumes/Java_Developer.pdf`)
+      filename: `JAYARAM_S_KUMAR.pdf`,
+      path: path.join(__dirname, `/resumes/JAYARAM_S_KUMAR_RESUME.pdf`)
     }]
   };
 
@@ -210,7 +213,7 @@ app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
     return res.status(200).json({
       status: 'success',
       message: 'Email sent successfully'
-    }); 
+    });
 
   } catch (error) {
     console.error("Error:", error);
