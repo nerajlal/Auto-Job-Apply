@@ -161,8 +161,8 @@ app.post('/sendemail', upload.single('posterImage'), async (req, res) => {
   // Prepare email content
   const emailContent = {
     from: user,
-    // to: myEmailObj.hrEmail,
-    to: "kumarjayaram545@gmail.com",
+    to: myEmailObj.hrEmail,
+    // to: "kumarjayaram545@gmail.com",
     subject: myEmailObj.subject,
     html: `<p>Dear Hiring Team at ${myEmailObj.company},</p>
 
