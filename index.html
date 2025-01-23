@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Previous head content remains the same -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Sender</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center px-4 py-12">
+        <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Job Application Sender</h2>
+            
+            <!-- Loading/Success/Error Messages -->
+            <div id="statusMessage" class="mb-4 hidden">
+                <div class="p-4 rounded-md">
+                    <p class="text-center" id="statusText"></p>
+                </div>
+            </div>
+
+            <!-- Generation Animation Modal -->
+            <div id="generationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
+                        <p class="text-lg font-semibold text-gray-700">Generating email...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous email preview modal content remains the same -->
+            <div id="emailPreviewModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+                    <div class="flex flex-col space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900">Email Preview</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="typewriter-container">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">HR Email</label>
+                                    <input type="email" id="hrEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700">Subject</label>
+                                    <input type="text" id="subject" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700">Email Body</label>
+                                    <div class="mt-1 relative">
+                                        <!-- Hidden textarea for storing original HTML content -->
+                                        <textarea id="emailBodyHidden" class="hidden"></textarea>
+                                        <!-- Div for displaying typewriter effect -->
+                                        <div id="emailBody" 
+                                             contenteditable="true" 
+                                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 min-h-[200px] max-h-[400px] overflow-y-auto p-3 border"
+                                             style="white-space: pre-wrap;">
+                                        </div>
+                                        <!-- Cursor element -->
+                                        <div id="typingCursor" class="hidden absolute inline-block w-0.5 h-5 bg-blue-500 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-4">
+                            <button id="cancelPreview" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">Cancel</button>
+                            <button id="sendEmail" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Send Email</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous loading modal content remains the same -->
+            <div id="loadingModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
+                        <p class="text-lg font-semibold text-gray-700">Sending email...</p>
+                    </div>
+                </div>
+            </div>
+
+            <form id="jobApplicationForm" class="space-y-6">
+                <div>
+                    <label for="poster_image" class="block text-sm font-medium text-gray-700">Job Poster Image</label>
+                    <input type="file" 
+                           id="poster_image" 
+                           name="poster_image" 
+                           accept="image/*"
+                           class="mt-1 block w-full text-sm text-gray-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100"
+                           required>
+                    <div id="imagePreview" class="mt-2 hidden">
+                        <img id="preview" src="" alt="Preview" class="max-w-full h-auto rounded-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <p>Select which resume to send</p>
+                    <select name="resume" id="resume">
+                        <option value="JAVA_RESUME">JAVA RESUME</option>
+                        <option value="SOFTWARE_ENGINEER_RESUME">SOFTWARE ENGINEER RESUME</option>
+                        <option value="WEB_DEVELOPER_RESUME">WEB DEVELOPER RESUME</option>
+                    </select>
+                </div>
+
+                <button type="submit" 
+                        id="previewButton"
+                        class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span id="buttonText">Generate Email</span>
+                    <span id="buttonSpinner" class="hidden ml-2">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('jobApplicationForm');
+        const previewButton = document.getElementById('previewButton');
+        const buttonText = document.getElementById('buttonText');
+        const buttonSpinner = document.getElementById('buttonSpinner');
+        const emailPreviewModal = document.getElementById('emailPreviewModal');
+        const loadingModal = document.getElementById('loadingModal');
+        const generationModal = document.getElementById('generationModal');
+        const cancelPreviewButton = document.getElementById('cancelPreview');
+        const sendEmailButton = document.getElementById('sendEmail');
+        const statusMessage = document.getElementById('statusMessage');
+        const statusText = document.getElementById('statusText');
+        const imageInput = document.getElementById('poster_image');
+        const imagePreview = document.getElementById('imagePreview');
+        const preview = document.getElementById('preview');
+        const emailBodyDiv = document.getElementById('emailBody');
+        const emailBodyHidden = document.getElementById('emailBodyHidden');
+        const resume = document.getElementById('resume');
+
+        let typewriterTimeout;
+        const typingCursor = document.getElementById('typingCursor');
+        
+        // Function to simulate typewriter effect
+        async function typewriterEffect(element, html) {
+            return new Promise((resolve) => {
+                let tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                let text = tempDiv.textContent;
+                let index = 0;
+                element.innerHTML = '';
+                typingCursor.style.display = 'block';
+
+                function type() {
+                    if (index < text.length) {
+                        element.textContent += text.charAt(index);
+                        index++;
+                        
+                        // Position cursor at the end of text
+                        const range = document.createRange();
+                        const sel = window.getSelection();
+                        range.setStartAfter(element.lastChild || element);
+                        range.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+
+                        // Scroll to bottom as content is typed
+                        element.scrollTop = element.scrollHeight;
+
+                        // Random typing speed between 10ms and 30ms
+                        const randomDelay = Math.random() * 10 ;
+                        typewriterTimeout = setTimeout(type, randomDelay);
+                    } else {
+                        // Restore the HTML content after typing is complete
+                        element.innerHTML = html;
+                        typingCursor.style.display = 'none';
+                        resolve();
+                    }
+                }
+
+                type();
+            });
+        }
+
+        // Previous image preview functionality remains the same
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.classList.add('hidden');
+            }
+        });
+
+        function showMessage(message, type) {
+            statusMessage.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+            statusText.classList.remove('text-green-700', 'text-red-700');
+            
+            if (type === 'success') {
+                statusMessage.classList.add('bg-green-100');
+                statusText.classList.add('text-green-700');
+            } else {
+                statusMessage.classList.add('bg-red-100');
+                statusText.classList.add('text-red-700');
+            }
+            
+            statusText.textContent = message;
+            statusMessage.classList.remove('hidden');
+        }
+
+        let company;
+        let jobPosition;
+        // Updated preview email details with generation animation
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            statusMessage.classList.add('hidden');
+            
+            // Show generation animation
+            generationModal.classList.remove('hidden');
+            buttonText.textContent = 'Generating...';
+            buttonSpinner.classList.remove('hidden');
+            previewButton.disabled = true;
+
+            const formData = new FormData();
+            formData.append('posterImage', document.getElementById('poster_image').files[0]);
+
+            try {
+                const api_dev = "http://localhost:3000/poster"
+                const api_prod = "https://job-email-sender-neeraj.onrender.com/poster"
+                const response = await fetch(api_prod, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                // Hide generation animation and show preview modal
+                generationModal.classList.add('hidden');
+                emailPreviewModal.classList.remove('hidden');
+
+                // Set immediate values for email and subject
+                document.getElementById('hrEmail').value = data.myEmailObj.hrEmail;
+                document.getElementById('subject').value = data.myEmailObj.subject;
+                
+                // Store original HTML content
+                // emailBodyHidden.value = data.myEmailObj.emailBody;
+                emailBodyHidden.value = `Dear Hiring Team at ${data.myEmailObj.company},
+
+I am excited to apply for the ${data.myEmailObj.jobPosition} position at your esteemed organization. With a solid foundation and combined with a keen understanding of front-end and back-end development, I am eager to contribute to ${data.myEmailObj.company}'s innovative projects.
+
+My hands-on experience includes creating dynamic web applications and working collaboratively in team environments. I am confident that my technical skills and enthusiasm for learning will enable me to excel in this role.
+
+I look forward to the opportunity to discuss how my skills and aspirations align with your team's goals.
+
+I have attached my resume for your review and would welcome the opportunity to discuss how my skills and experiences align with your team's goals.
+
+Thank you for considering my application, and I look forward to the possibility of contributing to ${data.myEmailObj.company}'s success.
+
+Best regards,
+Neraj Lal S
+Phone: +91 8547470675
+Email: nerajnerajlal@gmail.com`
+                company = data.myEmailObj.company;
+                jobPosition = data.myEmailObj.jobPosition;
+                
+                // Start typewriter effect for email body
+                await typewriterEffect(emailBodyDiv, emailBodyHidden.value);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Network error: Please try again later', 'error');
+            } finally {
+                // Reset button state
+                buttonText.textContent = 'Generate Email';
+                buttonSpinner.classList.add('hidden');
+                previewButton.disabled = false;
+            }
+        });
+        
+        function cleanupTypewriter() {
+            if (typewriterTimeout) {
+                clearTimeout(typewriterTimeout);
+            }
+            emailBodyDiv.innerHTML = emailBodyHidden.value;
+            typingCursor.style.display = 'none';
+        }
+
+        // Modified cancel preview with cleanup
+        cancelPreviewButton.addEventListener('click', function() {
+            cleanupTypewriter();
+            emailPreviewModal.classList.add('hidden');
+        });
+
+        // Previous send email functionality remains the same
+        sendEmailButton.addEventListener('click', async function() {
+            console.log("sendemail route")
+            emailPreviewModal.classList.add('hidden');
+            loadingModal.classList.remove('hidden');
+
+            const emailData = {
+                hrEmail: document.getElementById('hrEmail').value,
+                subject: document.getElementById('subject').value,
+                company,
+                jobPosition,
+                emailBody: emailBodyDiv.innerHTML,
+                resume:document.getElementById('resume').value
+
+            };
+
+            try {
+                const api_dev = "http://localhost:3000/sendemail"
+                const api_prod = "https://job-email-sender-neeraj.onrender.com/sendemail"
+                const response = await fetch(api_prod, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(emailData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Email sent successfully!', 'success');
+                    form.reset();
+                    imagePreview.classList.add('hidden');
+                } else {
+                    showMessage(data.message || 'Failed to send email', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Network error: Please try again later', 'error');
+            } finally {
+                loadingModal.classList.add('hidden');
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target == emailPreviewModal) {
+                cleanupTypewriter();
+                emailPreviewModal.classList.add('hidden');
+            }
+            if (event.target == generationModal) {
+                generationModal.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
